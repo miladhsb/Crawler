@@ -12,6 +12,7 @@ namespace Crawler
     internal class CrawleTag
     {
         private readonly HtmlWeb _htmlWeb;
+        string domain;
         public CrawleTag()
         {
           
@@ -25,14 +26,15 @@ namespace Crawler
         public void startCrawle(int pagenumber)
         {
            
-            for (int i = pagenumber; i < (pagenumber + 300); i++)
+            for (int i = pagenumber; i < (pagenumber + 10); i++)
             {
 
                 try
                 {
                 
                 
-                    string baseurl = $"https://www.digikala.com/search/category-stationery-sub/?page={i}&sort=7";
+                    string baseurl = $"https://www.{domain}.com/search/category-tv2/?page={i}&sort=7";
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine(baseurl);
                     GetImages(baseurl);
                     
@@ -49,11 +51,14 @@ namespace Crawler
         private HtmlNodeCollection GetProductTags(string Url)
         {
 
-
+         
+                var htmlDoc = _htmlWeb.Load(Url);
+                var res = htmlDoc.DocumentNode.SelectNodes("//a[contains(@class, 'block cursor-pointer relative')]");
+                return res;
           
-            var htmlDoc = _htmlWeb.Load(Url);
-            var res = htmlDoc.DocumentNode.SelectNodes("//a[contains(@class, 'block cursor-pointer relative')]");
-            return res;
+          
+          
+          
 
            
         }
@@ -66,52 +71,66 @@ namespace Crawler
                 Directory.CreateDirectory(PicsDir);
             }
 
-
-            foreach (var item in GetProductTags(Url))
+            try
             {
-
-
-
-                try
+                foreach (var item in GetProductTags(Url))
                 {
 
-                    var LinkValue = item.Attributes["href"].Value;
-
-                    var htmlDoc = _htmlWeb.Load($"https://www.digikala.com{LinkValue}");
 
 
-                    var images = htmlDoc.DocumentNode.SelectNodes("//img[contains(@class, 'w-full bg-neutral-000 inline-block')]");
-                    WebClient webClient = new WebClient();
-                    foreach (var image in images)
+                    try
                     {
-                        try
-                        {
-                            var imgUrl = image.Attributes["src"].Value.Split("?")[0];
-                            var ImgName = Path.GetFileName(imgUrl);
-                            var filepath = Path.Combine(PicsDir, ImgName);
-                            webClient.DownloadFile(imgUrl, filepath);
-                            Console.WriteLine($"successfully DownloadFile : {ImgName} ");
+
+                        var LinkValue = item.Attributes["href"].Value;
+
+                        var htmlDoc = _htmlWeb.Load($"https://www.{domain}.com{LinkValue}");
 
 
-                        }
-                        catch (Exception e)
+                        var images = htmlDoc.DocumentNode.SelectNodes("//img[contains(@class, 'w-full bg-neutral-000 inline-block')]");
+                        WebClient webClient = new WebClient();
+                        foreach (var image in images)
                         {
-                            Console.WriteLine(e.Message);
-                            continue;
+                            try
+                            {
+                                var imgUrl = image.Attributes["src"].Value.Split("?")[0];
+                                var ImgName = Path.GetFileName(imgUrl);
+                                var filepath = Path.Combine(PicsDir, ImgName);
+                                webClient.DownloadFile(imgUrl, filepath);
+                                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                                Console.WriteLine($"successfully DownloadFile : {ImgName}   ");
+                                Console.WriteLine( $"with Url : {Url}");
+                                Console.WriteLine("--------------------------------------------------------");
+
+
+                            }
+                            catch (Exception e)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkRed;
+                                Console.WriteLine(e.Message);
+                                continue;
+                            }
                         }
+
+
+                    }
+                    catch (Exception e)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.WriteLine(e.Message);
+
+                        continue;
                     }
 
 
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-
-                    continue;
-                }
-
-
             }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine(e.Message);
+            }
+
+      
         }
     }
 }

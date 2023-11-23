@@ -1,16 +1,22 @@
-﻿namespace Crawler
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+namespace Crawler
 {
     internal class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-           var cw=  new CrawleTag();
+            var builder = Host.CreateApplicationBuilder(args);
+            builder.Services.AddHostedService<Worker>();
 
-                Console.WriteLine("set page Number : ");
-                var page =Console.ReadLine();
-                cw.startCrawle(int.Parse(page));
-                Console.ReadKey();
-                Console.WriteLine("end task!");
+            var host = builder.Build();
+            host.Run();
+
+
+
+          
         }
+       
     }
 }
